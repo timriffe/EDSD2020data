@@ -36,7 +36,7 @@ A day will consist in interactive demonstration lasting around 4 hours from 9:00
 
 This index is to be updated as materials are finalized. It's more for posterity than a prospective syllabus.
 
-[Session 1](Introductions) (Monday, 9 Nov)
+[Session 1](Day1) (Monday, 9 Nov)
 
 1. [About me](Day1#about-me)
 2. [About this module](Day1#about-this-module)
