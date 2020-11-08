@@ -38,13 +38,13 @@ This index is to be updated as materials are finalized. It's more for posterity 
 
 [Session 1](Introductions) (Monday, 9 Nov)
 
-1. [About me](Introductions#about-me)
-2. [About this module](Introductions#about-this-module)
-3. [Rmarkdown basics](Introductions#rmarkdown-basics)
-4. [Tidyverse basics](Introductions#tidy-data)
-5. [ggplot2 intro with gapminder](Introductions#basic-ggplot2-with-the-gapminder-data)
-6. [dplyr intro](Introductions#basic-dplyr)
-7. [UN fertility example](Introductions#examples)
+1. [About me](Day1#about-me)
+2. [About this module](Day1#about-this-module)
+3. [Rmarkdown basics](Day1#rmarkdown-basics)
+4. [Tidyverse basics](Day1#tidy-data)
+5. [ggplot2 intro with gapminder](Day1#basic-ggplot2-with-the-gapminder-data)
+6. [dplyr intro](Day1#basic-dplyr)
+7. [UN fertility example](Day1#examples)
 
 
 Session 2 (Tuesday, 10 Nov)
