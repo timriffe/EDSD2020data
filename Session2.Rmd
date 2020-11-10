@@ -13,11 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Today's objective is to get some practice with basic data wrangling. We'll use COVID case data from the Philippines for our example data.
 
-## Read in the dataset
+## Read in the data set
 
 Download case data by following the `Download COVID-19 Data drop` link here <https://ncovtracker.doh.gov.ph/>
 
-Stick the file in the `Data` folder (using your usual file browser or whatever). The naem of the file is long, sorry, and it contains the date in `yyyymmdd` format, so you'll need to change the path if you download data from a different date.
+Stick the file in the `Data` folder (using your usual file browser or whatever). The name of the file is long, sorry, and it contains the date in `yyyymmdd` format, so you'll need to change the path if you download data from a different date.
 ```{r, message = FALSE}
 library(tidyverse)
 library(readr)
@@ -30,10 +30,13 @@ glimpse(PH)
 
 There are lots of nice date columns in this file, which we can use for calculating different kinds of lags.
 
+## Calculate times series of cumulative totals
+
 First, let's derive the aggregate series, as typically reported. We take `DateRepConf` as the day data will have likely entered the statistical series. Most places report cumulative sums. Key tricks used here:
 
 1. `n()` counts rows 
 2. `group_by()` means that whatever you do after it happens independently within groups.
+3. accumulation here happens right within the `ggplot()` call with `cumsum()`
 
 ```{r}
 
@@ -62,7 +65,7 @@ PH %>%
   table()
 ```
 
-There are some deaths, under a percent, where we don't know when it ocurred. But that doesn't mean we know nothing. We might know other prior dates, like onset, specimen, date of case registry, and maybe those things vary in a regular way by age or sex or whatever
+There are some deaths, under a percent, where we don't know when it occurred. But that doesn't mean we know nothing. We might know other prior dates, like onset, specimen, date of case registry, and maybe those things vary in a regular way by age or sex or whatever
 
 ```{r}
 Deaths <-   PH %>% 
@@ -76,7 +79,9 @@ Deaths %>%
 
 ```
 
-How about we calcualte the lag distribution between case onset and case registry?
+## Calculate reporting lags
+
+How about we calculate the lag distribution between case onset and case registry?
 ```{r}
 PH %>% 
   dplyr::pull(DateOnset) %>% 
@@ -89,7 +94,7 @@ PH %>%
   table()
 ```
 
-We can only do this for the cases with recorded date of onset (transmission). `DateRepConf` is given for each case, because it's known, necessarily. It's the day the data enter the statistical series. `DateOnset` is known for a bit under half of cases at this writing. If we want to relate onset to reporting, then both dates should be known. Indeed if patterns were stable enough, then maybe it'd make sense to impute onset date using the available covariates? I don't know, worth thinking about. Anyway, moving forard, let's calculate the overall mean lag.
+We can only do this for the cases with recorded date of onset (transmission). `DateRepConf` is given for each case, because it's known, necessarily. It's the day the data enter the statistical series. `DateOnset` is known for a bit under half of cases at this writing. If we want to relate onset to reporting, then both dates should be known. Indeed if patterns were stable enough, then maybe it'd make sense to impute onset date using the available covariates? I don't know, worth thinking about. Anyway, moving forward, let's calculate the overall mean lag.
 ```{r}
 PH %>% 
   filter(!is.na(DateOnset)) %>% 
@@ -110,6 +115,8 @@ PH %>%
   geom_line() + 
   ylim(0,16) # set explicit y limits
 ```
+
+### Lag distributions
 
 Question: What about the lag *distribution*, of which the mean is just a summary measure, does it vary much? This pipeline is a bit more involved. Step annotation below.
 
@@ -185,7 +192,7 @@ A new mini lesson on color palettes, which can be used well or poorly, but this 
 1. `colorspace` has a nice selection of base palettes (which you can also customize)
 2. there are functions for using these palettes in `ggplot` `color` or `fill` `scales`.
 
-The function name is built out of componenets:
+The function name is built out of components:
 
 `scale_(color or fill)_(discrete or continuous)_(qualitative or sequential or diverging)`
 
@@ -199,11 +206,11 @@ scale
 ```
 
 
-# Excercise
+# Exercise
 
 Is case detection getting faster (better)?
 
-Choose a reasonable cut point for *before-after* (possibly derived from some obervation about the overall timeseries of data). 
+Choose a reasonable cut point for *before-after* (possibly derived from some observation about the overall timeseries of data). 
 
 That is to say, is the lag between onset and *detection* getting shorter, and/or more compact over time. Make it easy and just group all the data before your cutpoint in one group, and all the data after it into another.
 

@@ -49,9 +49,14 @@ This index is to be updated as materials are finalized. It's more for posterity 
 
 [Session 2](Session2) (Tuesday, 10 Nov)
 
-1.
-2.
-3.
+1. [Objective](Session2#objective)
+2. [Get the data](Session2#read-in-the-dataset)
+3. [Calculate totals](Session2#calculate-times-series-of-cumulative-totals)
+4. [Calculate lags](Session2#calculate-reporting-lags)
+5. [Lag distributions](Session2#lag-distributions)
+6. [Misc questions](Session2#questions-posed-in-class)
+7. [Exercise](Session2#exercise)
+
 
 Session 3 (Wednesday, 11 Nov)
 
