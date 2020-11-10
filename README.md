@@ -6,7 +6,7 @@ Materials for the EDSD data wrangling module
 
 [Day 1, Monday, Nov. 9, 17:00-18:00](https://timriffe.github.io/EDSD2020data/Day1)
 
-- Nov 10 17:00-20:00
+[Day 2, Tuesday, Nov. 10, 17:00-18:00](https://timriffe.github.io/EDSD2020data/Session2)
 
 - Nov 11 15:00-18:00
 

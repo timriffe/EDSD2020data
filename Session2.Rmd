@@ -1,0 +1,219 @@
+---
+title: "Session 2"
+author: "Tim Riffe"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objective
+
+Today's objective is to get some practice with basic data wrangling. We'll use COVID case data from the Philippines for our example data.
+
+## Read in the dataset
+
+Download case data by following the `Download COVID-19 Data drop` link here <https://ncovtracker.doh.gov.ph/>
+
+Stick the file in the `Data` folder (using your usual file browser or whatever). The naem of the file is long, sorry, and it contains the date in `yyyymmdd` format, so you'll need to change the path if you download data from a different date.
+```{r, message = FALSE}
+library(tidyverse)
+library(readr)
+
+PH <- read_csv("Data/DOH COVID Data Drop_ 20201110 - 04 Case Information.csv")
+
+dim(PH)
+glimpse(PH)
+```
+
+There are lots of nice date columns in this file, which we can use for calculating different kinds of lags.
+
+First, let's derive the aggregate series, as typically reported. We take `DateRepConf` as the day data will have likely entered the statistical series. Most places report cumulative sums. Key tricks used here:
+
+1. `n()` counts rows 
+2. `group_by()` means that whatever you do after it happens independently within groups.
+
+```{r}
+
+Cases <-
+  PH %>% 
+  group_by(DateRepConf) %>% 
+  summarize(N = n())
+
+Cases %>% 
+  ggplot(mapping = aes(x = DateRepConf,
+                       y = cumsum(N))) +
+  geom_line()
+```
+
+Now, the same thing for Deaths. First let's see if there are many deaths with unknown dates:
+
+```{r}
+# how many deaths with known date of death?
+PH %>% 
+  filter(!is.na(DateDied)) %>% 
+  nrow()
+
+# how many known deaths
+PH %>% 
+  dplyr::pull(RemovalType) %>% 
+  table()
+```
+
+There are some deaths, under a percent, where we don't know when it ocurred. But that doesn't mean we know nothing. We might know other prior dates, like onset, specimen, date of case registry, and maybe those things vary in a regular way by age or sex or whatever
+
+```{r}
+Deaths <-   PH %>% 
+  filter(!is.na(DateDied)) %>% 
+  group_by(DateDied) %>% 
+  dplyr::summarize(N = n())
+
+Deaths %>% 
+  ggplot(aes(x = DateDied, y = N)) +
+  geom_line()
+
+```
+
+How about we calcualte the lag distribution between case onset and case registry?
+```{r}
+PH %>% 
+  dplyr::pull(DateOnset) %>% 
+  is.na() %>% 
+  table()
+
+PH %>% 
+  dplyr::pull(DateRepConf) %>% 
+  is.na() %>% 
+  table()
+```
+
+We can only do this for the cases with recorded date of onset (transmission). `DateRepConf` is given for each case, because it's known, necessarily. It's the day the data enter the statistical series. `DateOnset` is known for a bit under half of cases at this writing. If we want to relate onset to reporting, then both dates should be known. Indeed if patterns were stable enough, then maybe it'd make sense to impute onset date using the available covariates? I don't know, worth thinking about. Anyway, moving forard, let's calculate the overall mean lag.
+```{r}
+PH %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(CaseReportLag = DateRepConf - DateOnset) %>% 
+  summarize(MeanLag = mean(CaseReportLag))
+```
+
+Question: Do age and sex matter for the mean lag? Seemingly not that much. Note the use of `%%` (modulo, or *remainder*) in order to group ages to 10-year age groups. A trick worth internalizing.
+
+```{r}
+PH %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(CaseReportLag = DateRepConf - DateOnset,
+         Age10 = Age - Age %% 10) %>% 
+  group_by(Sex, Age10) %>% 
+  summarize(MeanLag = mean(CaseReportLag)) %>% 
+  ggplot(aes(x =Age10, y = MeanLag, color = Sex)) + 
+  geom_line() + 
+  ylim(0,16) # set explicit y limits
+```
+
+Question: What about the lag *distribution*, of which the mean is just a summary measure, does it vary much? This pipeline is a bit more involved. Step annotation below.
+
+```{r}
+library(colorspace)
+
+PH %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(CaseReportLag = DateRepConf - DateOnset,
+         Age10 = Age - Age %% 10) %>% 
+  group_by(Sex, Age10, CaseReportLag) %>% 
+  summarize(N = n()) %>% 
+  group_by(Sex, Age10) %>% 
+  filter(sum(N) >= 50) %>% 
+  mutate(dist = N / sum(N)) %>% 
+  
+  # here starts ggplot-land
+  ggplot(aes(x = CaseReportLag, 
+             y = dist, 
+             color = factor(Age10),
+             linetype = Sex,
+             group = interaction(Sex,Age10))) +
+  geom_line() + 
+  scale_color_discrete_sequential("ag_GrnYl") +
+  xlim(0,50)
+  
+```
+
+1. cut data down to recorded onset dates using `filter()`
+2. calculate lags, and also group ages inside `mutate()`
+3. within each observed combination of age group, sex, and lag, count the number of rows with `n()`
+4. throw out combinations of age and sex that don't have at least 50 measured lags
+5. within age and sex, transform counts into distributions, `dist`
+6. overplot the lag distributions. If they overlap nicely then age and sex maybe don't matter much.
+
+It seems that lags only matter some for children? Otherwise, looks like it might be safe to create a single lag distribution *standard* for use in imputing unknown onset dates. We don't actually do that here, but you can perhaps imagine some considerations that might go into it: Are there other observed distributions that might also help achieve the same goal? Would require a bit more exploratory analysis.
+
+
+## Questions posed in class
+
+### Clarify `n()` vs `sum()` inside tabulation pipelines
+
+This is a demonstration that tabulating microdata to more specific subgroups, and then `sum()`ing those counts is identical to just tabulating that way in the first place `n()`, i.e. in the less specific subgroups. In our case we have one row equal to one observation, but sometimes in surveys you are given population weights, in which case you'd probably rather `sum()` these. Make sense?
+
+```{r}
+
+# A tabulate, then sum within bigger groups
+A <- 
+   PH %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(CaseReportLag = DateRepConf - DateOnset,
+         Age10 = Age - Age %% 10) %>% 
+  group_by(Sex, Age10, CaseReportLag) %>% 
+  summarize(N = n()) %>% 
+  group_by(Sex, Age10) %>% 
+  summarize(N = sum(N))
+
+# B) just tabulate that way in the first place, identical
+B <- 
+PH %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(CaseReportLag = DateRepConf - DateOnset,
+         Age10 = Age - Age %% 10) %>% 
+  group_by(Sex, Age10) %>% 
+  summarize(N = n())
+
+```
+
+### `colorspace` package for nice color palettes
+
+A new mini lesson on color palettes, which can be used well or poorly, but this particular tool happens to be structured in a way that promotes making good choices.
+
+1. `colorspace` has a nice selection of base palettes (which you can also customize)
+2. there are functions for using these palettes in `ggplot` `color` or `fill` `scales`.
+
+The function name is built out of componenets:
+
+`scale_(color or fill)_(discrete or continuous)_(qualitative or sequential or diverging)`
+
+Just let autocomplete let you remember how to do it. Then you can just give the palette name you want inside the function. 
+
+```{r}
+library(colorspace)
+hcl_palettes(plot = TRUE)
+scale
+# scale_color_discrete_sequential("ag_GrnYl")
+```
+
+
+# Excercise
+
+Is case detection getting faster (better)?
+
+Choose a reasonable cut point for *before-after* (possibly derived from some obervation about the overall timeseries of data). 
+
+That is to say, is the lag between onset and *detection* getting shorter, and/or more compact over time. Make it easy and just group all the data before your cutpoint in one group, and all the data after it into another.
+
+Consider separating children vs everyone else, since we saw that it made a different with reporting lags. Here the objective is detection lags rather than reporting lags, so look over the variables and make a reasonable guess at what's needed there.
+
+We will begin the class Wednesday by working through this solution. 
+
+
+
+
+
+
+

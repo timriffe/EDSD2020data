@@ -1,0 +1,117 @@
+---
+title: "Session 1"
+author: "Tim Riffe"
+date: "11/9/2020"
+output: html_document
+---
+
+This code chunk is just setting a default global parameter for the chunks that says that the code executed in the chunk should be displayed in the output document.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# make a vector of 10 random uniform deviates
+a <- runif(10)
+# plot it in a potentially nonsensical way
+plot(sort(a), a)
+```
+
+
+## Lesson
+
+A tidy dataset is defined as a rectaungular where observations are in rows and variables are in columns.
+
+Check out the book Data Visualization, a Practical Introduction, by Kieran Healy. See the website <https://socviz.co/>. Today we refer mostly to chapter 3.
+
+Use the chunk parameter `message = FALSE` to say not to print the annoying messages that go to the console when you load `tidyverse` for the first time in a session.
+
+Install a missing package in-line with `install.packages()`. I commented it 
+ out because you wouldn't want to reinstall each time you knit.
+```{r, message = FALSE}
+library(tidyverse)
+# install.packages("gapminder")
+library(gapminder)
+
+head(gapminder)
+dim(gapminder)
+View(gapminder)
+```
+
+`Ctrl + Shift + m` makes a pipe :-)
+```{r}
+# Calculate avg life expectancy within each country
+# over the 12 60 years of observation.
+gap_grouped <-
+  gapminder %>% 
+  group_by(country) %>% 
+  summarize(MeanLE = mean(lifeExp)) 
+
+# so you can see what to imagine by a chunk (group)
+# gapminder %>% 
+#   filter(country == "Afghanistan")
+```
+
+
+Demonstration that if after operating on groups you still have more than
+One line per group that the groups may or may not remain still declared after the operation is done!
+```{r}
+
+gapgrouped <-
+  gapminder %>% 
+  mutate(decade = year - year %% 10) %>% 
+  group_by(country, decade) %>% 
+  summarize(meanLE = mean(lifeExp))
+  
+```
+
+Well, 3 hours sure does fly... I ended with instructions to find the prepared tutorial, which covers a bit more. It was designed for in-person instruction with more contact time per day, so understandably we didn't get all the way through it. Also a description of the assignment, here re-pasted:
+
+# Assignment:
+
+- Max 4 people per group. 
+- Topic of your choosing. 
+- Demonstrate that you’re practicing these data wrangling concepts:
+
+1. Pipeline construction (a clear path from source to target data)
+2. Actually that’s it.
+
+But best if there’s gold at the end of the pipeline: i.e. a figure that shows the point of it all in a descriptive way. 
+
+In the markdown text, describe to me the objective, cite the data, etc, and interpret your descriptive findings.
+
+No joke on publishability of results: you could try a dataviz article at socius:
+Socius *data visualization*:
+<https://journals.sagepub.com/topic/collections-srd/srd-1_special_collection_data_visualization/srd>
+Demographiic Research *descriptive findings*:
+<https://www.demographic-research.org/info/general_information.htm>
+
+... or many other things (happy to give suggestions if you take that possibility seriously). I will make a few suggestions on empirical things you could do that would constitute “things people have never seen before” or about that level of complexity. Nothing too over the top.
+
+I ask that groups operate in a didactic way: more experienced people please help the less experienced people in a constructive and helpful way. Win each other’s hearts and all that.
+Groups are non-competing entities.
+
+I treat multi-person groups as coauthorship sets, meaning that it’s fine if you specialize. However, unlike manuscripts where the minimum is often to have read and approve of the manuscript plus one other substantive contribution: For the case of this assignment, each group member must have at minimum have read and understand the code produced, and have read and approve the rest of the paper too. 
+
+How big? Aim for small, <1000 words, simple, doesn’t need to be perfectly polished, just an unashamed first draft of something descriptive and interesting. Invest in having a nice clean pipeline. 
+
+Kudos^[kudos means, it sparks joy, but isn't necessary] if:
+- You merge two or more sources. 
+- Invest in the data viz at the end :-).
+- Somewhere in the pipeline you use a self-written function (I’ll demonstrate this).
+- You share the work with me via an OSF repository.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
