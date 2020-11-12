@@ -259,7 +259,7 @@ We limited the x-axis up to 100 days since the tail of the distribution is too l
 
 ```{r}
 
-  phil %>% 
+  PH %>% 
   filter(!is.na(DateOnset)) %>% 
   mutate(detection.lag = DateResultRelease - DateOnset,
          Age10 = Age - Age %% 10,
