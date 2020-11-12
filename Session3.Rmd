@@ -1,0 +1,406 @@
+---
+title: "Session 3"
+author: "Tim Riffe"
+date: "11/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Objectives
+
+Let's demonstrate file *merging* today.
+
+## Read in the PH data
+
+First we read the Philippines data back in, using the same `read_csv()` function as yesterday
+```{r, message = FALSE}
+library(tidyverse)
+library(readr)
+
+PH <- read_csv("Data/DOH COVID Data Drop_ 20201110 - 04 Case Information.csv")
+```
+
+## Merging
+
+### Prepare cases and deaths to merge
+
+First, tabulate cases and deaths by age and sex. Let's choose a reference date that isn't too affected by registration lags in deaths. This is its own little challenge.
+
+Let's say most cases have entered the system by 2 weeks before today. Note, this assumes the data are from Nov 10. I modified the `ref_date` calcs to account for this code being run at future dates. If you're using a different version of the data, you'll need to account for it.
+
+We declare the `earliest_date` as the earliest of onset, specimen, release, or entering the statistics. This last one has no missings.
+```{r}
+library(lubridate)
+# ref_date <- today() - 14
+ref_date <- today() - (today() - ymd("2020-11-11") + 14)
+
+Cases <-
+  PH %>% 
+  # see pmin() explanation in later section.
+  mutate(earliest_date = pmin(DateOnset, 
+                              DateSpecimen, 
+                              DateResultRelease, 
+                              DateRepConf, 
+                              na.rm =TRUE)) %>% 
+  filter(earliest_date <= ref_date) %>% 
+  mutate(Age5 = Age - Age %% 5,
+         Age5 = ifelse(Age5 > 100, 100, Age5)) %>% 
+         # Age5 = case_when(Age5 > 100 ~ 100,
+         #                  TRUE ~ Age5)) %>% 
+  group_by(Age5) %>% 
+  summarize(Cases = n()) %>% 
+  mutate(UNK = Cases[is.na(Age5)]) %>% 
+  filter(!is.na(Age5)) %>% 
+  mutate(dist = Cases / sum(Cases),
+         Cases = Cases + dist * UNK) %>% 
+  select(Age5, Cases)
+```
+ 
+ We filter out all those cases whose earliest date is before our 2-weeks-ago reference date. We then create 5-year age groups as in previous days, taking care to group ages `>` 100 so that we can later merge with WPP population data (we made that modification later). Note you can do this with `ifelse()`, `case_when()` or surely something else. This is a 3-step process: 1) create grouping variable 2) declare the groups 3) count the rows per group. 
+ 
+ Then we redistribute unknowns *without leaving the pipeline*. The idea is to move unknown ages (a single value) to a new column `UNK` using `mutate()`, then turn cases by age into a distribution `dist`, then redistribute using that distribution, and finally `select()` just the columns we want to keep.
+
+Deaths are filtered on a less stringent citerion, but otherwise follow the same logic.
+```{r}
+Deaths <-
+  PH %>% 
+  filter(!is.na(DateDied), # commas are like ANDs &
+    DateDied <= ref_date) %>% 
+  mutate(Age5 = Age - Age %% 5,
+          Age5 = ifelse(Age5 > 100, 100, Age5)) %>% 
+  group_by(Age5) %>% 
+  summarize(Deaths = n()) %>% 
+  mutate(UNK = Deaths[is.na(Age5)]) %>% 
+  filter(!is.na(Age5)) %>% 
+  mutate(dist = Deaths / sum(Deaths),
+         Deaths = Deaths + dist * UNK) %>% 
+  select(Age5, Deaths)
+
+```
+
+## merging cases and deaths together
+
+We referred to a data wrangling cheat sheet
+<https://rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf>
+Nevermind the `gather()` `spread()` info on that sheet, we'll do the new thing. `left_join()` treats the left-side dataset as holy, and removing none of its rows. `right_join()` does the opposite. `inner_join()` just keeps rows that are matched, where the key variable combinations are present in both datasets. `full_join()` keeps everything from both sides. Me, personally, I most often use `left_join()`, it's just easier to remember it and set things up accordingly.
+
+```{r}
+
+CFR <- Cases %>% 
+  left_join(Deaths) %>% 
+  mutate(ASCFR = Deaths / Cases)
+
+```
+Main points to remember: If you don't tell it which columns to match on, it will compare column names in both datasets, and by default it will try to join using any names in common. The columns classes must be the same for that to work. In our case, it joins using out variable `Age5`, which satisfies this condition. If you want finer control, read the help file.
+
+# Plot CFR
+
+let's plot it!
+
+```{r}
+CFR %>% 
+  ggplot(aes(x = Age5, y = ASCFR)) + 
+  geom_line() +
+  scale_y_log10()
+```
+
+The infant part has been popping up in other countries too, the deceleration in older ages is inconsistent between countries, but it is unlikely that there is actually a drop in extreme old age. We suspect it's a data quality artifact, and therefore chop the x axis at 100.
+
+### Merge in WPP data
+
+Now lets merge on population counts from the WPP2019. There's a package containing selected WPP outputs in 5-year age groups, which serves us here.
+
+Males and females are given separately. We first extract the columns we need with `select()`, then cut it down to just the Philippines. We then stack them, then group on age and sum accordingly to give both-sex totals by age. Note this data stops at `100+`, and this is why we grouped the earlier case and death data down to 100. Note the extensive use of `case_when()` to recode age groups. There are slicker tricks that take up less space, but this is the most explicit and elegant way of doing this sort of thing.
+
+```{r}
+library(wpp2019)
+# data(popM)
+# data(popF)
+# popM %>% dim()
+# popM %>% pull(name) %>% unique()
+males <- 
+  popM %>% 
+  select(name, age, `2020`) %>% 
+  filter(name == "Philippines")
+females <- 
+  popF %>% 
+  select(name, age, `2020`) %>% 
+  filter(name == "Philippines")
+
+Pop <- bind_rows(
+  males,
+  females
+) %>% 
+  group_by(age) %>% 
+  summarize(Population = sum(`2020`)) %>% 
+  mutate(Age5 = 
+           case_when(
+             age == "0-4" ~ 0,
+             age == "5-9" ~ 5,
+             age == "10-14" ~ 10,
+             age == "15-19" ~ 15,
+             age == "20-24" ~ 20,
+             age == "25-29" ~ 25,
+             age == "30-34" ~ 30,
+             age == "35-39" ~ 35,
+             age == "40-44" ~ 40,
+             age == "45-49" ~ 45,
+             age == "50-54" ~ 50,
+             age == "55-59" ~ 55,
+             age == "60-64" ~ 60,
+             age == "65-69" ~ 65,
+             age == "70-74" ~ 70,
+             age == "75-79" ~ 75,
+             age == "80-84" ~ 80,
+             age == "85-89" ~ 85,
+             age == "90-94" ~ 90,
+             age == "95-99" ~ 95,
+             age == "100+" ~ 100,
+           )) %>% 
+  arrange(Age5) %>% 
+  select(-age)
+
+```
+
+Let's merge with CFR, but note there's a difference of 
+just one row. WPP stops at 100+. PH stops at 105+.
+
+```{r}
+
+CFR <- CFR %>% 
+  left_join(Pop)
+```
+
+## Exercise
+
+Merge 3 datasets: OWD, COVerAGE-DB, and STMF. Pick a country included in all 3 datasets. Ideally one whose inputdata in STMF is given in 5-year age groups. I chose Denmark. Each country will imply different challenges.
+
+### Download and read into R
+
+- OWD data can be read in directly from the internet using the `raw` url provided on github.
+- COVerAGE-DB data can be downloaded from OSF <https://osf.io/mpwjq/>
+-STMF input data can be downloaded from the HMD <https://www.mortality.org/>. 
+
+I examined what was available in the STMF inputs and selected from it. Demark ought to be in all three sources. 
+```{r}
+OWD <- read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/testing/covid-testing-all-observations.csv")
+
+COV <- read_csv("Data/Output_5.zip",
+                     skip = 3,
+                     col_types = "ccccciiddd")
+# this one is specifically Denmark!
+STMF <- read_csv(unzip("Data/STMFinput.zip","DNKstmf.csv"))
+```
+
+the `COV` `read_csv()` part works straight from the zip file because the contents have the same name. However the `STMF` zip files has lots of csvs in it, so we need to grab out just the one we want using `unzip()`: no need to manually unzip.
+
+### Filter to Denmark 2020
+First filter down OWD and COVerAGE-DB to Denmark. Filter down STMF to 2020.
+
+```{r}
+COV <-
+  COV %>% 
+  filter(Country == "Denmark",
+         Region == "All") %>% 
+  mutate(Date = dmy(Date))
+OWD <- 
+  OWD %>% 
+  filter(`ISO code` == "DNK")
+
+STMF <- 
+  STMF %>% 
+  filter(Year == 2020)
+```
+
+Trick: OWD is just daily figures, both cumulative and new, smoothed and raw.
+STMF is *new* deaths, in week bins
+whereas COVerAGE-DB is *cumulative* counts. We need to make things match somewhat! Well technically, we just want to achieve a merge, but let's make things match a bit better from the start.
+
+### Decumulate COVerAGE-DB
+Step 1: let's decumulate COVerAGE-DB data over time so that it's new cases, deaths, and tests. Do we have steady daily observations even? 
+
+A visual check and a programmatic check: do we have daily data?
+```{r}
+
+COV %>% 
+  group_by(Date) %>% 
+  mutate(Deaths = sum(Deaths)) %>% 
+  ggplot(aes(x = Date, y = Deaths)) +
+  geom_point()
+
+# check for day gaps: ruh roh! There are some gaps we need to interpolate, no? Weekends I guess.
+COV %>% pull(Date) %>% unique() %>% sort() %>% diff()
+
+```
+Conclusion: it's fairly consistent, but there are often gaps. Probably weekends where data was either not released or not captured. No problem: STMF is weekly data anyway, so let's figure out how to turn COVerAGE-DB into weekly new data. 
+
+First idea: interpolate to get a clean daily series, then decumulate, then group to weeks? Lots of challenges to figure out if we do that.
+
+Second idea: Maybe there's a way to get to new counts by week without needing to interpolate to single days first? This would simplify things a lot.
+
+Check to see if there is some `weekday()` consistently in the data, like Monday.
+
+```{r}
+COV %>% pull(Date) %>% unique() %>% sort() %>% weekdays() %>% table()
+```
+
+OK, we can select just the Mondays in the data. Note: it will choose the day names based on your locale! If you want to ensure spelling, try the tricks here <https://stackoverflow.com/a/17031207/889960>
+
+Our steps: select only Mondays (we're not missing any), then derive the ISO week from these (STMF follows that convention), then sort first by `Sex`, then by `Age` within `Sex` then by `week` within `Sex` and `Age`. (the innermost sort is last). Then group by `Sex` and `Age` and decumulate counts using `diff()`. Note the result must be the same length, so we pad with `NA` at the end. Finally, we `select()` just the columns we need to retain.
+```{r}
+COV <- 
+  COV %>% 
+  filter(weekdays(Date) == "Monday") %>% 
+  mutate(Week = week(Date)) %>% 
+  # sort just to be sure decumulation works right
+  arrange(Sex, Age, Week) %>% 
+  group_by(Sex, Age) %>% 
+  # decumulate, pad w NA
+  mutate(cov_deaths_wk = c(diff(Deaths),NA),
+         cov_cases_wk = c(diff(Cases), NA),
+         cov_tests_wk = c(diff(Tests), NA)) %>% 
+  # keep just what we want
+  select(Sex, 
+         Week, 
+         Age, 
+         cov_deaths_wk, 
+         cov_cases_wk, 
+         cov_tests_wk)
+```
+
+Now we coerced COVerAGE-DB to the STMF dimensions, sort of.
+
+### prepare STMF data
+
+Now Let's examine STMF, recalling this is input data, and it may have unknown ages that need to be redistributed, or similar.
+
+```{r}
+STMF %>% pull(Age) %>% unique()
+```
+
+OK, looks like no explicit unknown ages. They do give totals, but we don't know for sure whether marginal sums match these totals. Typically, we would trust `TOT` more than we would trust the marginal sum. We'll just make sure, that this is so by forcing a rescale, using the same trick from before to redistribute unknowns. Really, should check that each week has a total. For the moment, we're doing this on faith, but we could also check..
+
+```{r}
+STMF <-
+  STMF %>% 
+  group_by(Week, Sex) %>% 
+  # move total to column
+  mutate(TOT = Deaths[Age == "TOT"]) %>% 
+  filter(Age != "TOT") %>% 
+  mutate(dist = Deaths / sum(Deaths),
+         Deaths = dist * TOT,
+         Age = as.integer(Age)) %>% 
+  select(Sex, Week, Age, Deaths) %>% 
+  arrange(Sex, Week, Age)
+```
+
+### Ready to merge STMF and COVerAGE-DB
+
+I'll put COVerAGE-DB on the left, since it has fewer weeks, and that's all we want to compare anyway. We've already taken care to make columns `Sex`, `Week` and `Age` commensurable.
+```{r}
+head(STMF)
+head(COV)
+
+OUT <- left_join(COV, STMF)
+
+```
+
+We'll the actually joining is the least of our worries it seems! All the work went into prepping the data!
+
+### Merge on OWD data
+
+First, we also need a `Week` variable for OWD.
+```{r}
+OWD <-
+  OWD %>% 
+  mutate(Week = week(Date))
+```
+
+Oh snap, OWD is mostly missing data for this date range in Denmark!!
+
+But guess what? We can still use the testing data present in COVerAGE-DB. Likely it was discarded by OWD due to differences in definitions or something like this.
+
+### Calculate and plot
+
+Let's see *new* positivity by age
+
+```{r}
+OUT %>% 
+  mutate(Positivity = cov_cases_wk / cov_tests_wk) %>% 
+  filter(Sex == "b") %>% 
+  ggplot(aes(x = Week, 
+             y = Positivity, 
+             color = Age, 
+             group = Age)) +
+  geom_line() 
+```
+Maybe clearer picture in 20-year age groups?
+
+```{r}
+OUT %>% 
+  mutate(Age = Age - Age %% 20) %>% 
+  group
+  mutate(Positivity = cov_cases_wk / cov_tests_wk) %>% 
+  filter(Sex == "b") %>% 
+  ggplot(aes(x = Week, 
+             y = Positivity, 
+             color = Age, 
+             group = Age)) +
+  geom_line() 
+```
+
+
+### details on logical conditions behavior
+
+Or checks if at least one instance of a logical is `TRUE`. If that is the case, i.e. `c(TRUE, NA, NA, FALSE)`, then it will return `TRUE`. However, if it can't find a single `TRUE` but there are `NA`s, it cannot do the opposite, because one of those `NA`s could be `TRUE` but we just don't know it, so it returns `NA` instead.
+```{r}
+1 > 0 | NA > 0 # TRUE, NA -> TRUE
+# likewise:
+any(c(1,NA)>0) # TRUE
+# but not:
+1 < 0 | NA > 0 # FALSE, NA -> NA
+```
+
+
+### `pmin()` trick
+
+While organically coding the `PH` example, I wanted to find the minimum of a set of dates, where one of the dates was never missing, but other earlier dates (preferred) were sometimes missing and sometimes not. When I tried this with `min(date1,date2,date3)` inside `mutate()` it revealed some behavior to be aware of.
+
+1. `min()` returns `NA` unless you tell it to throw them out with `na.rm=TRUE`.
+2. `min()` takes everything you give it, and sticks it in `c()`, a single vector, then takes the overall minimum.
+
+Therefore, `min(date1,date2,date3,na.rm=TRUE)` gave the date of the first case as the same value for the whole series! Which is not what we wanted. So, I remembered `pmin()` does the same thing, but elementwise for sets of vectors, and that trick saved the day. Examine the below code to see these behaviors demonstrated.
+
+```{r}
+a <- 1:10
+b <- 10:1
+d <- runif(10)
+e <- c(runif(9),NA)
+
+ # takes the global min
+min(a,b)
+
+# NA always wins
+min(a,e) 
+
+# unless you declare otherwise!
+min(a,e, na.rm=TRUE) 
+
+ # takes the elementwise min
+pmin(a,b)  
+
+# works with multiple vectors :-)
+pmin(a,b,d) 
+
+# na.rm works as expected too :-)
+pmin(a, b, d, e, na.rm = TRUE) 
+```
+
+This last example is how we ended up using it inside `mutate()` in order to find the earliest of a set of dates, and it worked as expected, just took a bit of trial and error to get there.
+
+
+
