@@ -207,6 +207,7 @@ COV <-
   filter(Country == "Denmark",
          Region == "All") %>% 
   mutate(Date = dmy(Date))
+
 OWD <- 
   OWD %>% 
   filter(`ISO code` == "DNK")
@@ -245,6 +246,7 @@ Second idea: Maybe there's a way to get to new counts by week without needing to
 Check to see if there is some `weekday()` consistently in the data, like Monday.
 
 ```{r}
+ weekdays(today()) 
 COV %>% pull(Date) %>% unique() %>% sort() %>% weekdays() %>% table()
 ```
 
@@ -252,6 +254,9 @@ OK, we can select just the Mondays in the data. Note: it will choose the day nam
 
 Our steps: select only Mondays (we're not missing any), then derive the ISO week from these (STMF follows that convention), then sort first by `Sex`, then by `Age` within `Sex` then by `week` within `Sex` and `Age`. (the innermost sort is last). Then group by `Sex` and `Age` and decumulate counts using `diff()`. Note the result must be the same length, so we pad with `NA` at the end. Finally, we `select()` just the columns we need to retain.
 ```{r}
+
+a <- c(1,2,3,4,5,6)
+diff(a)
 COV <- 
   COV %>% 
   filter(weekdays(Date) == "Monday") %>% 
@@ -305,7 +310,8 @@ I'll put COVerAGE-DB on the left, since it has fewer weeks, and that's all we wa
 head(STMF)
 head(COV)
 
-OUT <- left_join(COV, STMF)
+OUT <- left_join(COV, STMF) %>% 
+  arrange(Sex, Week, Age)
 
 ```
 
@@ -401,6 +407,25 @@ pmin(a, b, d, e, na.rm = TRUE)
 ```
 
 This last example is how we ended up using it inside `mutate()` in order to find the earliest of a set of dates, and it worked as expected, just took a bit of trial and error to get there.
+
+### Save out our results
+```{r}
+
+saveRDS(OUT, file = "Data/DNK_STMF_COV.rds")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
