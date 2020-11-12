@@ -218,9 +218,74 @@ Consider separating children vs everyone else, since we saw that it made a diffe
 
 We will begin the class Wednesday by working through this solution. 
 
+Now the same thing for deaths:
 
 
+## Possible Solution
+
+```{r}
+# Plotting the deads
+Deaths %>% 
+  ggplot(aes(x=DateDied, 
+             y = N)) + 
+  geom_line()
+```
 
 
+We can make a zoom into the valley between the 2 peaks:
 
+```{r, echo = FALSE}
+
+# Using lubridate package to transform strings to dates
+library(lubridate)
+
+Deaths %>% 
+  ggplot(aes(x=DateDied, 
+             y = N)) + 
+  geom_line() +
+  xlim(ymd("2020-03-15"), ymd("2020-07-15"))
+
+```
+
+It looks like May 15th is the lowest point of daily deaths between the 2 peaks in Philippines.
+
+We can try a possible solution by analyzing the distribution of the difference between the `DateOnset` and the `DateResultRelease`.
+
+We will create a flag for "children" vs "no_children" (set at 15 years old) and a flag to indicate the dates before and after May 15th.
+
+Instead of calculating the percentage for each data point, we decided to use the `geom_density` function from `ggplot` to plot density functions. We separated the plots by date using the `facet_grid` function.
+
+We limited the x-axis up to 100 days since the tail of the distribution is too long and does not give much information after that time. But, there is a bump in the tail around 120 days lag which could be interesting to keep analyzing further.
+
+```{r}
+
+  phil %>% 
+  filter(!is.na(DateOnset)) %>% 
+  mutate(detection.lag = DateResultRelease - DateOnset,
+         Age10 = Age - Age %% 10,
+        # Creating a variable to flag the before and after May 15th data in the plot
+         date_flag = case_when(DateOnset <= ymd("2020-05-15") ~ "01 Before 2020-05-15",
+                               TRUE ~ "02 After 2020-05-15"),
+        # Creating a variable to flag if the microdata comes from a "child" (here we defined under 15 years old, but can be changed easily)
+         children = case_when(Age < 15 ~ "child",
+                              TRUE ~ "not_child")
+         )  %>%
+  # Grouping 
+  group_by(DateOnset, Sex, Age10, date_flag, children) %>% 
+  summarize(avg.lag = mean(detection.lag)) %>% 
+  ggplot(aes(x=avg.lag, color=children)) + 
+  # We use the geom_density instead of having to calculate the percentage of each day-lag. Is not exactly the same (kernel vs exact calculation) but good enough for a quick analysis
+  geom_density() +
+  # Splitting the plots by the feature that shows before and after 15th May
+  facet_grid(~ date_flag) +
+  # Just to 100 days lag because the tail is too long and doesn't give much information.
+  # BUT!: there is a bump for 120 days lag in the time series before 15th May
+  # Culd be nice to understand why...
+  xlim(0,100)
+
+```
+
+As we can see from the plots, the distributions got narrower after May 15th, indicating that the lag is getting shorter and the process getting better.
+
+At the same time, children's distribution is narrower compared to the non-child after May 15th which suggests that testing for younger ages got better after that date. 
 
