@@ -25,9 +25,11 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Objective
+# Objective
 
 Today's objective is to get some practice with basic data wrangling. We'll use COVID case data from the Philippines for our example data.
+
+# Philippines COVID data
 
 ## Read in the data set
 
@@ -171,7 +173,7 @@ PH %>%
 It seems that lags only matter some for children? Otherwise, looks like it might be safe to create a single lag distribution *standard* for use in imputing unknown onset dates. We don't actually do that here, but you can perhaps imagine some considerations that might go into it: Are there other observed distributions that might also help achieve the same goal? Would require a bit more exploratory analysis.
 
 
-## Questions posed in class
+# Questions posed in class
 
 ### Clarify `n()` vs `sum()` inside tabulation pipelines
 
