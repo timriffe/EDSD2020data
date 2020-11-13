@@ -1,8 +1,8 @@
 ---
-pagetitle: "Day 1"
+pagetitle: "Session 1"
 title: | 
   | Data Wrangling for EDSDers
-  | \vspace{1.5cm} \LARGE\emph{Module outline}
+  | \vspace{1.5cm} \LARGE\emph{Session 2}
 author: |
   | 9-12 Nov, 2020
   | Tim Riffe

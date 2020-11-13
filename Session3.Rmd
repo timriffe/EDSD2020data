@@ -2,7 +2,17 @@
 title: "Session 3"
 author: "Tim Riffe"
 date: "11/11/2020"
-output: html_document
+output:   
+  html_document:
+    number_sections: yes
+    toc: yes
+params:
+  output_dir: "../EDSD2020data/docs"
+header-includes:
+- \usepackage{titling}
+- \pretitle{\begin{center}\includegraphics[trim=0 0 0 8cm, width=6cm, ]{assets/MPIDR_square_color.pdf}\\[\bigskipamount]}
+- \posttitle{\end{center}}
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
