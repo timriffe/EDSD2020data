@@ -58,16 +58,22 @@ This index is to be updated as materials are finalized. It's more for posterity 
 7. [Exercise](Session2#exercise)
 
 
-[Session 3](Session2) (Tuesday, 10 Nov)
+[Session 3](Session3) (Wednesday, 11 Nov)
 
-1. [Objective](Session3)
-2. [Get the data](Session3)
-3. [Calculate totals](Session3)
-4. [Calculate lags](Session3)
-5. [Lag distributions](Session3)
-6. [Misc questions](Session3)
-7. [Exercise](Session3)
+1. [Objective](Session3#objective)
+2. [Get the data](Session3#read-in-the-ph-data)
+3. [Merging](Session3#merging)
+4. [Merge prep](Session3#Prepare-cases-and-deaths-to-merge)
+5. [left joins](Session3#merging-cases-and-deaths-together)
+6. [Misc questions](Session3#plot-cfr)
+7. [add WPP data](Session3#merge-in-wpp-data)
+8. [Exercise (several steps)](Session3#exercise)
+9. [Mini lessons](Session3#mini-lessons)
 
+[Session 4](Session4) (Thursday, 12 Nov)
 
-Session 4 (Thursday, 12 Nov)
-
+1. [Objective](Session4#objective)
+2. [Pivot concept](Session4#pivot-concept)
+3. [Denmark COVID example](Session4#denmark-weekly-covid-data)
+4. [WPP Example](Session4#wpp2019-data)
+5. [Fertiltiy Example](Session4#Further-example-of-pivoting)

@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This tutorial will demonstrate how to toggle your data between long and wide formats. In a few different ways. This task is called *pivoting*. 
 
+## Pivot concept
+
 Here's a table example just to make the concept clear. It will also now serve as the first example. Examine the following 3 matrices:
 
 ```{r,message=FALSE, warning=FALSE, include = FALSE}
@@ -111,11 +113,27 @@ head(SexInColumns)
 
 ## WPP2019 example
 
+The `wpp2019` package (we used it earlier for the Philippines), comes in a wide format, with years spread over columns. Often, this is how spreadsheets are downloaded from Eurostat, the WHO, etc, so it's a quite common situation to encounter. Here only a single pass with `pivot_longer()` is needed to get to tidy format. Note we put the column names used for the column range in back ticks. If you don't use back ticks it will try to interpret those years as index positions, which in this case don't exist. 
+
 ```{r}
 library(wpp2019)
+data(popM)
+popMtidy <-
+  popM %>% 
+  mutate(Sex = "m") %>% 
+  pivot_longer(`1950`:`2020` ,
+              names_to = "Year", 
+              values_to = "Population") 
+head(popMtidy)
 ```
 
+Note that the data came out sorted not necessarily how we would have done it. `arrange()` will not to the right thing with `age` here: it will alphabetize the ages rather than put them in ascending order. Observe:
 
+```{r}
+popMtidy %>% 
+  arrange(name, Year, age)
+```
+To get them sorted properly, the best is to recode `age` to the integer lower bounds of each age group, then sorting is a breeze. See the example from Wednesday for this.
 
 ## Further example of pivoting
 

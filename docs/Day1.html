@@ -558,14 +558,15 @@ ggplot(gapminder, mapping = aes(x = gdpPercap, y = lifeExp, color = continent)) 
 head(gap_grouped)</code></pre>
 <pre><code>## # A tibble: 6 x 6
 ## # Groups:   country, year, continent [6]
-##   country     continent  year lifeExp      pop gdpPercap
-##   &lt;fct&gt;       &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt;     &lt;dbl&gt;
-## 1 Afghanistan Asia       1952    28.8  8425333      779.
-## 2 Afghanistan Asia       1957    30.3  9240934      821.
-## 3 Afghanistan Asia       1962    32.0 10267083      853.
-## 4 Afghanistan Asia       1967    34.0 11537966      836.
-## 5 Afghanistan Asia       1972    36.1 13079460      740.
-## 6 Afghanistan Asia       1977    38.4 14880372      786.</code></pre>
+##   country continent  year lifeExp    pop
+##   &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;
+## 1 Afghan… Asia       1952    28.8 8.43e6
+## 2 Afghan… Asia       1957    30.3 9.24e6
+## 3 Afghan… Asia       1962    32.0 1.03e7
+## 4 Afghan… Asia       1967    34.0 1.15e7
+## 5 Afghan… Asia       1972    36.1 1.31e7
+## 6 Afghan… Asia       1977    38.4 1.49e7
+## # … with 1 more variable: gdpPercap &lt;dbl&gt;</code></pre>
 <p>Grouping does not do anything to the data directly. All values will be identical, and the dimensions are the same. It just adds a piece of metadata to the object that declares the grouping.</p>
 <p>NB: the object created here is used in the following code chunk.</p>
 </div>
@@ -589,15 +590,16 @@ gap_mutated &lt;- mutate(gap_grouped,
 head(gap_mutated)</code></pre>
 <pre><code>## # A tibble: 6 x 7
 ## # Groups:   country [1]
-##   country continent  year lifeExp    pop gdpPercap
-##   &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;     &lt;dbl&gt;
-## 1 Afghan… Asia       1952    28.8 8.43e6      779.
-## 2 Afghan… Asia       1957    30.3 9.24e6      821.
-## 3 Afghan… Asia       1962    32.0 1.03e7      853.
-## 4 Afghan… Asia       1967    34.0 1.15e7      836.
-## 5 Afghan… Asia       1972    36.1 1.31e7      740.
-## 6 Afghan… Asia       1977    38.4 1.49e7      786.
-## # … with 1 more variable: mean_lifeExp &lt;dbl&gt;</code></pre>
+##   country continent  year lifeExp    pop
+##   &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;
+## 1 Afghan… Asia       1952    28.8 8.43e6
+## 2 Afghan… Asia       1957    30.3 9.24e6
+## 3 Afghan… Asia       1962    32.0 1.03e7
+## 4 Afghan… Asia       1967    34.0 1.15e7
+## 5 Afghan… Asia       1972    36.1 1.31e7
+## 6 Afghan… Asia       1977    38.4 1.49e7
+## # … with 2 more variables: gdpPercap &lt;dbl&gt;,
+## #   mean_lifeExp &lt;dbl&gt;</code></pre>
 <p>You can also just keep comma separating newly made columns, like so:</p>
 <pre class="r"><code>mutate(gap_grouped,
        mean_lifeExp = mean(lifeExp),
@@ -634,15 +636,16 @@ head(gap_mutated)</code></pre>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <pre class="r"><code>head(gap_summarize)</code></pre>
 <pre><code>## # A tibble: 6 x 5
-##   country mean_lifeExp mean_gdpPercap sd_gdpPercap
-##   &lt;fct&gt;          &lt;dbl&gt;          &lt;dbl&gt;        &lt;dbl&gt;
-## 1 Afghan…         37.5           803.         108.
-## 2 Albania         68.4          3255.        1192.
-## 3 Algeria         59.0          4426.        1310.
-## 4 Angola          37.9          3607.        1166.
-## 5 Argent…         69.1          8956.        1863.
-## 6 Austra…         74.7         19981.        7815.
-## # … with 1 more variable: cov_gdpPercap &lt;dbl&gt;</code></pre>
+##   country mean_lifeExp mean_gdpPercap
+##   &lt;fct&gt;          &lt;dbl&gt;          &lt;dbl&gt;
+## 1 Afghan…         37.5           803.
+## 2 Albania         68.4          3255.
+## 3 Algeria         59.0          4426.
+## 4 Angola          37.9          3607.
+## 5 Argent…         69.1          8956.
+## 6 Austra…         74.7         19981.
+## # … with 2 more variables:
+## #   sd_gdpPercap &lt;dbl&gt;, cov_gdpPercap &lt;dbl&gt;</code></pre>
 <p>You can get a lot of mileage out of <code>group_by()</code>, <code>mutate()</code> and <code>summarize()</code>.</p>
 </div>
 <div id="select" class="section level4">
@@ -703,15 +706,16 @@ gap_gr2 &lt;- mutate(gap_gr2, mean_lifeExp_year = mean(lifeExp))
 head(gap_gr2)</code></pre>
 <pre><code>## # A tibble: 6 x 8
 ## # Groups:   year [6]
-##   country continent  year lifeExp    pop gdpPercap
-##   &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;     &lt;dbl&gt;
-## 1 Afghan… Asia       1952    28.8 8.43e6      779.
-## 2 Afghan… Asia       1957    30.3 9.24e6      821.
-## 3 Afghan… Asia       1962    32.0 1.03e7      853.
-## 4 Afghan… Asia       1967    34.0 1.15e7      836.
-## 5 Afghan… Asia       1972    36.1 1.31e7      740.
-## 6 Afghan… Asia       1977    38.4 1.49e7      786.
-## # … with 2 more variables: mean_lifeExp_country &lt;dbl&gt;,
+##   country continent  year lifeExp    pop
+##   &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;
+## 1 Afghan… Asia       1952    28.8 8.43e6
+## 2 Afghan… Asia       1957    30.3 9.24e6
+## 3 Afghan… Asia       1962    32.0 1.03e7
+## 4 Afghan… Asia       1967    34.0 1.15e7
+## 5 Afghan… Asia       1972    36.1 1.31e7
+## 6 Afghan… Asia       1977    38.4 1.49e7
+## # … with 3 more variables: gdpPercap &lt;dbl&gt;,
+## #   mean_lifeExp_country &lt;dbl&gt;,
 ## #   mean_lifeExp_year &lt;dbl&gt;</code></pre>
 </div>
 </div>
@@ -767,20 +771,22 @@ gapminder %&gt;%
     mutate(mean_lifeExp_year = mean(lifeExp)) </code></pre>
 <pre><code>## # A tibble: 1,704 x 8
 ## # Groups:   year [12]
-##    country continent  year lifeExp    pop gdpPercap
-##    &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;     &lt;dbl&gt;
-##  1 Afghan… Asia       1952    28.8 8.43e6      779.
-##  2 Afghan… Asia       1957    30.3 9.24e6      821.
-##  3 Afghan… Asia       1962    32.0 1.03e7      853.
-##  4 Afghan… Asia       1967    34.0 1.15e7      836.
-##  5 Afghan… Asia       1972    36.1 1.31e7      740.
-##  6 Afghan… Asia       1977    38.4 1.49e7      786.
-##  7 Afghan… Asia       1982    39.9 1.29e7      978.
-##  8 Afghan… Asia       1987    40.8 1.39e7      852.
-##  9 Afghan… Asia       1992    41.7 1.63e7      649.
-## 10 Afghan… Asia       1997    41.8 2.22e7      635.
-## # … with 1,694 more rows, and 2 more variables:
-## #   mean_lifeExp_country &lt;dbl&gt;, mean_lifeExp_year &lt;dbl&gt;</code></pre>
+##    country continent  year lifeExp    pop
+##    &lt;fct&gt;   &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt;
+##  1 Afghan… Asia       1952    28.8 8.43e6
+##  2 Afghan… Asia       1957    30.3 9.24e6
+##  3 Afghan… Asia       1962    32.0 1.03e7
+##  4 Afghan… Asia       1967    34.0 1.15e7
+##  5 Afghan… Asia       1972    36.1 1.31e7
+##  6 Afghan… Asia       1977    38.4 1.49e7
+##  7 Afghan… Asia       1982    39.9 1.29e7
+##  8 Afghan… Asia       1987    40.8 1.39e7
+##  9 Afghan… Asia       1992    41.7 1.63e7
+## 10 Afghan… Asia       1997    41.8 2.22e7
+## # … with 1,694 more rows, and 3 more
+## #   variables: gdpPercap &lt;dbl&gt;,
+## #   mean_lifeExp_country &lt;dbl&gt;,
+## #   mean_lifeExp_year &lt;dbl&gt;</code></pre>
 <p>Note also: We use indentation and alignment to make the code more legible.</p>
 <p>As mentioned, <code>dplyr</code> pipelines also read as sentences. This last one can be verbalized as “first take the gapminder dataset, then group it by country, then make a new column for the average life expectancy over time within the country, then regroup by year and make a new column for the average life expectancy over countries within the year”. Such sentences don’t make for good lit but they do make your code accessible to readers, which is a major advantage. You can (should) also comment as you go.</p>
 <p>Legibility of a script is achieved by reducing clutter and by using succinct pipelines. This is important because your processing/analysis code becomes all the more shareable, both with others and with future you. Who hasn’t looked back at your own code written years ago and wonders what the heck it does? It feels awful to have to reverse engineer your own logic and coding. Yes, it can be overcome with good annotations, but let’s obviate the need altogether if we can.</p>
@@ -879,17 +885,21 @@ plot(mono_graduate(Age5 = chunk$Age,
   group_by(Country, Year) %&gt;%
   mutate(TFR = sum(asfr),
          MAB = sum(asfr * (Age+.5))/TFR)</code></pre>
-<pre><code>## Warning in regularize.values(x, y, ties, missing(ties)):
-## collapsing to unique 'x' values
+<pre><code>## Warning in regularize.values(x, y, ties,
+## missing(ties)): collapsing to unique 'x'
+## values
 
-## Warning in regularize.values(x, y, ties, missing(ties)):
-## collapsing to unique 'x' values
+## Warning in regularize.values(x, y, ties,
+## missing(ties)): collapsing to unique 'x'
+## values
 
-## Warning in regularize.values(x, y, ties, missing(ties)):
-## collapsing to unique 'x' values
+## Warning in regularize.values(x, y, ties,
+## missing(ties)): collapsing to unique 'x'
+## values
 
-## Warning in regularize.values(x, y, ties, missing(ties)):
-## collapsing to unique 'x' values</code></pre>
+## Warning in regularize.values(x, y, ties,
+## missing(ties)): collapsing to unique 'x'
+## values</code></pre>
 <pre class="r"><code>nrow(ASFR) # yup it's bigger now</code></pre>
 <pre><code>## [1] 36645</code></pre>
 <p>Great, the trick is to be able to return data chunks in a new kind of column called a list column. Having a list column means you have nested data, however, we can get it back to flat tidy format by <code>unnest()</code>ing. Note that we lost TFR and MAB in this operation. A cheap way to keep them would have been to incldue them in the first <code>group_by()</code> statement, as I did for <code>ISO</code> (<code>ISO</code> and <code>Country</code> are redundant). Each subset now has single ages 15-49. We don’t know yet whether there were any pathological cases. Let’s make a scatterplot of MAB by TFR to find out.</p>
