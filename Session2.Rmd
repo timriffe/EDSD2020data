@@ -223,8 +223,10 @@ Now the same thing for deaths:
 
 ## Possible Solution
 
+Gonzalo submitted the following solution (from his breakout group) via a `github` `pull request` at my behest. It's another workflow tool that some of you may wish to use. You can either ask him for a run-down, or make a request to me to do it in the future, in which case we just need to schedule it. I've made minor edits to it.
+
 ```{r}
-# Plotting the deads
+# Plotting the deaths
 Deaths %>% 
   ggplot(aes(x=DateDied, 
              y = N)) + 
@@ -232,7 +234,7 @@ Deaths %>%
 ```
 
 
-We can make a zoom into the valley between the 2 peaks:
+Zoom into the valley between the 2 peaks. Trick: use `xlim()`. Note that the limits need to be expressed as dates, as well, ergo the `ymd()` trick used to parse easy-to-write character strings.
 
 ```{r, echo = FALSE}
 
@@ -247,26 +249,29 @@ Deaths %>%
 
 ```
 
-It looks like May 15th is the lowest point of daily deaths between the 2 peaks in Philippines.
+It looks like May 15th is the lowest point of daily deaths between the two peaks in Philippines.
 
-We can try a possible solution by analyzing the distribution of the difference between the `DateOnset` and the `DateResultRelease`.
+We can try a possible solution by analyzing the distribution of the lag between the `DateOnset` and the `DateResultRelease`.
 
 We will create a flag for "children" vs "no_children" (set at 15 years old) and a flag to indicate the dates before and after May 15th.
 
-Instead of calculating the percentage for each data point, we decided to use the `geom_density` function from `ggplot` to plot density functions. We separated the plots by date using the `facet_grid` function.
+Instead of calculating the percentage for each data point, we decided to use the `geom_density` function from `ggplot` to plot density functions. We separated the before-after figures using the `facet_grid` function.
 
-We limited the x-axis up to 100 days since the tail of the distribution is too long and does not give much information after that time. But, there is a bump in the tail around 120 days lag which could be interesting to keep analyzing further.
+We limited the x-axis up to 100 days since the tail of the distribution is too long and does not give much information after that time. But, there is a bump in the tail around 120 days lag which could be interesting to keep analyzing further. Is it a single registration event? A backlog that was entered all at once?
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 
   PH %>% 
   filter(!is.na(DateOnset)) %>% 
   mutate(detection.lag = DateResultRelease - DateOnset,
          Age10 = Age - Age %% 10,
-        # Creating a variable to flag the before and after May 15th data in the plot
+        # Creating a variable to flag the before and 
+        # after May 15th data in the plot
          date_flag = case_when(DateOnset <= ymd("2020-05-15") ~ "01 Before 2020-05-15",
                                TRUE ~ "02 After 2020-05-15"),
-        # Creating a variable to flag if the microdata comes from a "child" (here we defined under 15 years old, but can be changed easily)
+        # Creating a variable to flag if the microdata 
+        # comes from a "child" (here we defined under 15 
+        # years old, but can be changed easily)
          children = case_when(Age < 15 ~ "child",
                               TRUE ~ "not_child")
          )  %>%

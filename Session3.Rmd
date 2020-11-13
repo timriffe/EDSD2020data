@@ -118,8 +118,8 @@ Males and females are given separately. We first extract the columns we need wit
 
 ```{r}
 library(wpp2019)
-# data(popM)
-# data(popF)
+data(popM)
+data(popF)
 # popM %>% dim()
 # popM %>% pull(name) %>% unique()
 males <- 
@@ -349,7 +349,9 @@ Maybe clearer picture in 20-year age groups?
 ```{r}
 OUT %>% 
   mutate(Age = Age - Age %% 20) %>% 
-  group
+  group_by(Week,Sex,Age) %>% 
+  summarize(cov_cases_wk = sum(cov_cases_wk),
+            cov_tests_wk = sum(cov_tests_wk)) %>% 
   mutate(Positivity = cov_cases_wk / cov_tests_wk) %>% 
   filter(Sex == "b") %>% 
   ggplot(aes(x = Week, 
@@ -358,7 +360,7 @@ OUT %>%
              group = Age)) +
   geom_line() 
 ```
-
+Negatives (impossible) have a few potential sources. 1) could be cumualtive totals are reported each day, but are not back-updated. 2) could be due to erratic behavior in the closeout, depending on the open age group in the source data for Denmark (numbers are small). 3) data entry errors, totally possible! My guess is it's likely (1) because the open age is 90+ in the source data, and because in the limit all input errors are removed via repeated diagnostics and user feedback. Will need to look closer into it!
 
 ### details on logical conditions behavior
 
@@ -409,10 +411,12 @@ pmin(a, b, d, e, na.rm = TRUE)
 This last example is how we ended up using it inside `mutate()` in order to find the earliest of a set of dates, and it worked as expected, just took a bit of trial and error to get there.
 
 ### Save out our results
+
+I save the results and add them to the repository so that they can be used to demonstate pivoting used a contrived example.
 ```{r}
 
 saveRDS(OUT, file = "Data/DNK_STMF_COV.rds")
-
+write_csv(OUT, file = "Data/DNK_STMF_COV.csv")
 
 ```
 

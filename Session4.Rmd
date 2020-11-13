@@ -1,0 +1,137 @@
+---
+title: "Session 4"
+author: "Tim Riffe"
+date: "11/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objective
+
+This tutorial will demonstrate how to toggle your data between long and wide formats. In a few different ways. This task is called *pivoting*. 
+
+Here's a table example just to make the concept clear. It will also now serve as the first example. Examine the following 3 matrices:
+
+```{r,message=FALSE, warning=FALSE, include = FALSE}
+library(tidyverse)
+Long <- data.frame(Var1 = c(rep("a",5),rep("b",5)),
+                   Var2 = c(1:5,1:5),
+                   value = runif(10))
+Wide1 <- Long %>% pivot_wider(names_from=Var1,values_from=value)
+Wide2 <- Long %>% pivot_wider(names_from=Var2,values_from=value)
+```
+
+A longer representation of the toy is this: It's also *tidy* in the sense we've been working with.
+```{r}
+Long
+```
+
+There are in this case two plausible and one absurd *wide* representations of the data. They are redundant in terms of their information content. Observe:
+
+Spread out `Var1`
+```{r}
+Wide1
+```
+
+Spread out `Var2`
+
+```{r}
+Wide2
+```
+
+Often data is delivered by statistical offices in the form of spreadsheets that follow some version of wide formatting. But we've made some decent arguments in this module for using *tidy* formatting for your data processing workflows. Here's how to to move from wide to long:
+
+The function to use is `pivot_longer()`, where the first argument (after the incoming data) is the column range, `names_to` tells it what to call the column where we stash the former column names. `values_to` tells it what to call the column where the collected values will be stored.
+```{r}
+Wide1 %>% 
+  pivot_longer(a:b, 
+               names_to = "Var1", 
+               values_to = "value")
+```
+
+If you want the rows sorts as in the original `Long` object, use `arrange(Var1,Var2)` at the end of the pipeline. If you also want the columns in that same order, use `select(Var1, Var2, value)` after that. Neither of these things are necessary for most hypothetical downstream calculations, however. To shift the other wide representation to long is essentially the same, except you'd assign to a different column name. 
+
+To *pivot* from long to wide works like so:
+
+```{r}
+Long %>% 
+  pivot_wider(names_from = "Var1", values_from = "value")
+```
+
+It'd work the same for `Var2` as well. Now let's do a contrived example using real data.
+
+## Denmark weekly COVID data
+
+First we'll use our merged output from the Denmark merge solution given from the previous Wednesday session (session 3). This is a contrived case: say we
+
+We first read in the *tidy* output from the previous merge exercise. Since the `csv` output was committed to the github repo, we're able to read it directly into the `R` session, with no manual download. Just click on the file in `github`, and then click the `raw` button. That url is then copied and pasted into `R` like here:
+```{r}
+# COV <- readRDS("Data/DNK_STMF_COV.rds")
+COV <- read_csv("https://raw.githubusercontent.com/timriffe/EDSD2020data/main/Data/DNK_STMF_COV.csv")
+
+```
+
+Scenario: Say you want to spread weeks out over the columns in a spreadsheet to share with someone that says they need it that way. In this case, we probably want to take our different measures `cov_deaths_wk`, `cov_cases_wk`, `cov_tests_wk`, `Deaths` and stack them. We start with them in columns, so if we were to already spread out weeks over columns, we'd need to do it for each variable. That's very wide, very impractical. Instead we want weeks over columns, but the different measures stacked. 
+
+The first step is to take care of the measure stacking. This is a `pivot_longer()` operation. We then throw out `NA` values, and are ready to `pivot_wider()` to spread the weeks over columns. Finally, we sort, but this is just aesthetic. Always with `arrange()` start with the *outermost* sort and work your way *in*. `arrange(Sex, variable, Age)` says sort `Age` within `variable` (now stacked) within `Sex`.
+
+```{r}
+WeeksInColumns <-
+  COV %>% 
+  pivot_longer(cov_deaths_wk:Deaths, # column range
+               names_to = "variable",
+               values_to = "value") %>% 
+  filter(!is.na(value)) %>% 
+  pivot_wider(names_from = Week,
+              values_from = value) %>% 
+  arrange(Sex, variable, Age) 
+
+# just showing the top of the first 10 columns
+head(WeeksInColumns)[,1:10] 
+```
+
+If instead you wanted to put `Sex` in columns it would be:
+
+```{r}
+SexInColumns <-
+  COV %>% 
+  pivot_longer(cov_deaths_wk:Deaths, # column range
+               names_to = "variable",
+               values_to = "value") %>% 
+  filter(!is.na(value)) %>% 
+  pivot_wider(names_from = Sex,
+              values_from = value) %>% 
+  arrange(variable, Week, Age)
+
+head(SexInColumns)
+```
+
+## WPP2019 example
+
+```{r}
+library(wpp2019)
+```
+
+
+
+## Further example of pivoting
+
+You can see pivoting used in the fertility example from the day 1 
+[UN fertility example](Day1#examples)
+
+We did not work through this in class, but it's worth working through the pieces of that pipeline to understand what's happening to the data at each step.
+
+
+
+
+
+
+
+
+
+
+
+

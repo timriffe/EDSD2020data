@@ -14,3 +14,7 @@ render(render.this, output_dir = output_dir,
 render.this <- "../EDSD2020data/Session2.Rmd"
 render(render.this, output_dir = output_dir, 
        params = list(output_dir = output_dir))
+
+render.this <- "../EDSD2020data/Session3.Rmd"
+render(render.this, output_dir = output_dir, 
+       params = list(output_dir = output_dir))
