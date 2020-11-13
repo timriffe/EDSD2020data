@@ -354,6 +354,7 @@ OUT %>%
              group = Age)) +
   geom_line() 
 ```
+
 Maybe clearer picture in 20-year age groups?
 
 ```{r}
@@ -370,6 +371,7 @@ OUT %>%
              group = Age)) +
   geom_line() 
 ```
+
 Negatives (impossible) have a few potential sources. 1) could be cumualtive totals are reported each day, but are not back-updated. 2) could be due to erratic behavior in the closeout, depending on the open age group in the source data for Denmark (numbers are small). 3) data entry errors, totally possible! My guess is it's likely (1) because the open age is 90+ in the source data, and because in the limit all input errors are removed via repeated diagnostics and user feedback. Will need to look closer into it!
 
 # Mini lessons

@@ -399,34 +399,34 @@ summary {
 <p>A longer representation of the toy is this: It’s also <em>tidy</em> in the sense we’ve been working with.</p>
 <pre class="r"><code>Long</code></pre>
 <pre><code>##    Var1 Var2      value
-## 1     a    1 0.83321616
-## 2     a    2 0.17249478
-## 3     a    3 0.82116613
-## 4     a    4 0.56684240
-## 5     a    5 0.26655275
-## 6     b    1 0.76031145
-## 7     b    2 0.02897864
-## 8     b    3 0.72317924
-## 9     b    4 0.64167445
-## 10    b    5 0.89398167</code></pre>
+## 1     a    1 0.01286287
+## 2     a    2 0.38585611
+## 3     a    3 0.19172833
+## 4     a    4 0.78883760
+## 5     a    5 0.56014925
+## 6     b    1 0.06138376
+## 7     b    2 0.30609640
+## 8     b    3 0.51846487
+## 9     b    4 0.46982778
+## 10    b    5 0.96368528</code></pre>
 <p>There are in this case two plausible and one absurd <em>wide</em> representations of the data. They are redundant in terms of their information content. Observe:</p>
 <p>Spread out <code>Var1</code></p>
 <pre class="r"><code>Wide1</code></pre>
 <pre><code>## # A tibble: 5 x 3
-##    Var2     a      b
-##   &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt;
-## 1     1 0.833 0.760 
-## 2     2 0.172 0.0290
-## 3     3 0.821 0.723 
-## 4     4 0.567 0.642 
-## 5     5 0.267 0.894</code></pre>
+##    Var2      a      b
+##   &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1     1 0.0129 0.0614
+## 2     2 0.386  0.306 
+## 3     3 0.192  0.518 
+## 4     4 0.789  0.470 
+## 5     5 0.560  0.964</code></pre>
 <p>Spread out <code>Var2</code></p>
 <pre class="r"><code>Wide2</code></pre>
 <pre><code>## # A tibble: 2 x 6
-##   Var1    `1`    `2`   `3`   `4`   `5`
-##   &lt;fct&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 a     0.833 0.172  0.821 0.567 0.267
-## 2 b     0.760 0.0290 0.723 0.642 0.894</code></pre>
+##   Var1     `1`   `2`   `3`   `4`   `5`
+##   &lt;fct&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 a     0.0129 0.386 0.192 0.789 0.560
+## 2 b     0.0614 0.306 0.518 0.470 0.964</code></pre>
 <p>Often data is delivered by statistical offices in the form of spreadsheets that follow some version of wide formatting. But we’ve made some decent arguments in this module for using <em>tidy</em> formatting for your data processing workflows. Here’s how to to move from wide to long:</p>
 <p>The function to use is <code>pivot_longer()</code>, where the first argument (after the incoming data) is the column range, <code>names_to</code> tells it what to call the column where we stash the former column names. <code>values_to</code> tells it what to call the column where the collected values will be stored.</p>
 <pre class="r"><code>Wide1 %&gt;% 
@@ -436,28 +436,28 @@ summary {
 <pre><code>## # A tibble: 10 x 3
 ##     Var2 Var1   value
 ##    &lt;int&gt; &lt;chr&gt;  &lt;dbl&gt;
-##  1     1 a     0.833 
-##  2     1 b     0.760 
-##  3     2 a     0.172 
-##  4     2 b     0.0290
-##  5     3 a     0.821 
-##  6     3 b     0.723 
-##  7     4 a     0.567 
-##  8     4 b     0.642 
-##  9     5 a     0.267 
-## 10     5 b     0.894</code></pre>
+##  1     1 a     0.0129
+##  2     1 b     0.0614
+##  3     2 a     0.386 
+##  4     2 b     0.306 
+##  5     3 a     0.192 
+##  6     3 b     0.518 
+##  7     4 a     0.789 
+##  8     4 b     0.470 
+##  9     5 a     0.560 
+## 10     5 b     0.964</code></pre>
 <p>If you want the rows sorts as in the original <code>Long</code> object, use <code>arrange(Var1,Var2)</code> at the end of the pipeline. If you also want the columns in that same order, use <code>select(Var1, Var2, value)</code> after that. Neither of these things are necessary for most hypothetical downstream calculations, however. To shift the other wide representation to long is essentially the same, except you’d assign to a different column name.</p>
 <p>To <em>pivot</em> from long to wide works like so:</p>
 <pre class="r"><code>Long %&gt;% 
   pivot_wider(names_from = &quot;Var1&quot;, values_from = &quot;value&quot;)</code></pre>
 <pre><code>## # A tibble: 5 x 3
-##    Var2     a      b
-##   &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt;
-## 1     1 0.833 0.760 
-## 2     2 0.172 0.0290
-## 3     3 0.821 0.723 
-## 4     4 0.567 0.642 
-## 5     5 0.267 0.894</code></pre>
+##    Var2      a      b
+##   &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1     1 0.0129 0.0614
+## 2     2 0.386  0.306 
+## 3     3 0.192  0.518 
+## 4     4 0.789  0.470 
+## 5     5 0.560  0.964</code></pre>
 <p>It’d work the same for <code>Var2</code> as well. Now let’s do a contrived example using real data.</p>
 <div id="denmark-weekly-covid-data" class="section level2">
 <h2><span class="header-section-number">2.1</span> Denmark weekly COVID data</h2>
@@ -567,7 +567,7 @@ head(popMtidy)</code></pre>
 </div>
 <div id="further-example-of-pivoting" class="section level2">
 <h2><span class="header-section-number">2.3</span> Further example of pivoting</h2>
-<p>You can see pivoting used in the fertility example from the day 1 <a href="Day1#examples">UN fertility example</a></p>
+<p>You can see pivoting used in the fertility example from the day 1 <a href="Day1#exercises">UN fertility example</a></p>
 <p>We did not work through this in class, but it’s worth working through the pieces of that pipeline to understand what’s happening to the data at each step.</p>
 </div>
 </div>

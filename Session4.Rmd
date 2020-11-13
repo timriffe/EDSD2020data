@@ -148,7 +148,7 @@ To get them sorted properly, the best is to recode `age` to the integer lower bo
 ## Further example of pivoting
 
 You can see pivoting used in the fertility example from the day 1 
-[UN fertility example](Day1#examples)
+[UN fertility example](Day1#exercises)
 
 We did not work through this in class, but it's worth working through the pieces of that pipeline to understand what's happening to the data at each step.
 
