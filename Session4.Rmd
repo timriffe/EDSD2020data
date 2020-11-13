@@ -19,11 +19,11 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Objective
+# Objective
 
 This tutorial will demonstrate how to toggle your data between long and wide formats. In a few different ways. This task is called *pivoting*. 
 
-## Pivot concept
+# Pivot concept
 
 Here's a table example just to make the concept clear. It will also now serve as the first example. Examine the following 3 matrices:
 

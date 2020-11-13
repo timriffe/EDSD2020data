@@ -175,7 +175,7 @@ It seems that lags only matter some for children? Otherwise, looks like it might
 
 # Questions posed in class
 
-### Clarify `n()` vs `sum()` inside tabulation pipelines
+## Clarify `n()` vs `sum()` inside tabulation pipelines
 
 This is a demonstration that tabulating microdata to more specific subgroups, and then `sum()`ing those counts is identical to just tabulating that way in the first place `n()`, i.e. in the less specific subgroups. In our case we have one row equal to one observation, but sometimes in surveys you are given population weights, in which case you'd probably rather `sum()` these. Make sense?
 
@@ -203,7 +203,7 @@ PH %>%
 
 ```
 
-### `colorspace` package for nice color palettes
+## `colorspace` package for nice color palettes
 
 A new mini lesson on color palettes, which can be used well or poorly, but this particular tool happens to be structured in a way that promotes making good choices.
 

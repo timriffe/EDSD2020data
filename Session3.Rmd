@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Objective
+# Objective
 
 Let's demonstrate file *merging* today.
 
@@ -92,7 +92,7 @@ Deaths <-
 
 ```
 
-## merging cases and deaths together
+### merging cases and deaths together
 
 We referred to a data wrangling cheat sheet
 <https://rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf>
@@ -120,7 +120,7 @@ CFR %>%
 
 The infant part has been popping up in other countries too, the deceleration in older ages is inconsistent between countries, but it is unlikely that there is actually a drop in extreme old age. We suspect it's a data quality artifact, and therefore chop the x axis at 100.
 
-### Merge in WPP data
+# Merge in WPP data
 
 Now lets merge on population counts from the WPP2019. There's a package containing selected WPP outputs in 5-year age groups, which serves us here.
 
@@ -185,11 +185,11 @@ CFR <- CFR %>%
   left_join(Pop)
 ```
 
-## Exercise
+# Exercise
 
 Merge 3 datasets: OWD, COVerAGE-DB, and STMF. Pick a country included in all 3 datasets. Ideally one whose inputdata in STMF is given in 5-year age groups. I chose Denmark. Each country will imply different challenges.
 
-### Download and read into R
+## Download and read into R
 
 - OWD data can be read in directly from the internet using the `raw` url provided on github.
 - COVerAGE-DB data can be downloaded from OSF <https://osf.io/mpwjq/>
@@ -208,7 +208,7 @@ STMF <- read_csv(unzip("Data/STMFinput.zip","DNKstmf.csv"))
 
 the `COV` `read_csv()` part works straight from the zip file because the contents have the same name. However the `STMF` zip files has lots of csvs in it, so we need to grab out just the one we want using `unzip()`: no need to manually unzip.
 
-### Filter to Denmark 2020
+## Filter to Denmark 2020
 First filter down OWD and COVerAGE-DB to Denmark. Filter down STMF to 2020.
 
 ```{r}
@@ -231,7 +231,7 @@ Trick: OWD is just daily figures, both cumulative and new, smoothed and raw.
 STMF is *new* deaths, in week bins
 whereas COVerAGE-DB is *cumulative* counts. We need to make things match somewhat! Well technically, we just want to achieve a merge, but let's make things match a bit better from the start.
 
-### Decumulate COVerAGE-DB
+## Decumulate COVerAGE-DB
 Step 1: let's decumulate COVerAGE-DB data over time so that it's new cases, deaths, and tests. Do we have steady daily observations even? 
 
 A visual check and a programmatic check: do we have daily data?
@@ -289,7 +289,7 @@ COV <-
 
 Now we coerced COVerAGE-DB to the STMF dimensions, sort of.
 
-### prepare STMF data
+## prepare STMF data
 
 Now Let's examine STMF, recalling this is input data, and it may have unknown ages that need to be redistributed, or similar.
 
@@ -313,7 +313,7 @@ STMF <-
   arrange(Sex, Week, Age)
 ```
 
-### Ready to merge STMF and COVerAGE-DB
+## Ready to merge STMF and COVerAGE-DB
 
 I'll put COVerAGE-DB on the left, since it has fewer weeks, and that's all we want to compare anyway. We've already taken care to make columns `Sex`, `Week` and `Age` commensurable.
 ```{r}
@@ -327,7 +327,7 @@ OUT <- left_join(COV, STMF) %>%
 
 We'll the actually joining is the least of our worries it seems! All the work went into prepping the data!
 
-### Merge on OWD data
+## Merge on OWD data
 
 First, we also need a `Week` variable for OWD.
 ```{r}
@@ -340,7 +340,7 @@ Oh snap, OWD is mostly missing data for this date range in Denmark!!
 
 But guess what? We can still use the testing data present in COVerAGE-DB. Likely it was discarded by OWD due to differences in definitions or something like this.
 
-### Calculate and plot
+## Calculate and plot
 
 Let's see *new* positivity by age
 
@@ -372,9 +372,9 @@ OUT %>%
 ```
 Negatives (impossible) have a few potential sources. 1) could be cumualtive totals are reported each day, but are not back-updated. 2) could be due to erratic behavior in the closeout, depending on the open age group in the source data for Denmark (numbers are small). 3) data entry errors, totally possible! My guess is it's likely (1) because the open age is 90+ in the source data, and because in the limit all input errors are removed via repeated diagnostics and user feedback. Will need to look closer into it!
 
-## Mini lessons
+# Mini lessons
 
-### details on logical conditions behavior
+## details on logical conditions behavior
 
 Or checks if at least one instance of a logical is `TRUE`. If that is the case, i.e. `c(TRUE, NA, NA, FALSE)`, then it will return `TRUE`. However, if it can't find a single `TRUE` but there are `NA`s, it cannot do the opposite, because one of those `NA`s could be `TRUE` but we just don't know it, so it returns `NA` instead.
 ```{r}
@@ -386,7 +386,7 @@ any(c(1,NA)>0) # TRUE
 ```
 
 
-### `pmin()` trick
+## `pmin()` trick
 
 While organically coding the `PH` example, I wanted to find the minimum of a set of dates, where one of the dates was never missing, but other earlier dates (preferred) were sometimes missing and sometimes not. When I tried this with `min(date1,date2,date3)` inside `mutate()` it revealed some behavior to be aware of.
 

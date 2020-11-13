@@ -390,8 +390,8 @@ Max-Planck-Institute for Demographic Research</div></h4>
 </ul></li>
 </ul></li>
 <li><a href="#questions-posed-in-class"><span class="toc-section-number">3</span> Questions posed in class</a><ul>
-<li><a href="#clarify-n-vs-sum-inside-tabulation-pipelines"><span class="toc-section-number">3.0.1</span> Clarify <code>n()</code> vs <code>sum()</code> inside tabulation pipelines</a></li>
-<li><a href="#colorspace-package-for-nice-color-palettes"><span class="toc-section-number">3.0.2</span> <code>colorspace</code> package for nice color palettes</a></li>
+<li><a href="#clarify-n-vs-sum-inside-tabulation-pipelines"><span class="toc-section-number">3.1</span> Clarify <code>n()</code> vs <code>sum()</code> inside tabulation pipelines</a></li>
+<li><a href="#colorspace-package-for-nice-color-palettes"><span class="toc-section-number">3.2</span> <code>colorspace</code> package for nice color palettes</a></li>
 </ul></li>
 <li><a href="#exercise"><span class="toc-section-number">4</span> Exercise</a><ul>
 <li><a href="#possible-solution"><span class="toc-section-number">4.1</span> Possible Solution</a></li>
@@ -575,8 +575,8 @@ PH %&gt;%
 </div>
 <div id="questions-posed-in-class" class="section level1">
 <h1><span class="header-section-number">3</span> Questions posed in class</h1>
-<div id="clarify-n-vs-sum-inside-tabulation-pipelines" class="section level3">
-<h3><span class="header-section-number">3.0.1</span> Clarify <code>n()</code> vs <code>sum()</code> inside tabulation pipelines</h3>
+<div id="clarify-n-vs-sum-inside-tabulation-pipelines" class="section level2">
+<h2><span class="header-section-number">3.1</span> Clarify <code>n()</code> vs <code>sum()</code> inside tabulation pipelines</h2>
 <p>This is a demonstration that tabulating microdata to more specific subgroups, and then <code>sum()</code>ing those counts is identical to just tabulating that way in the first place <code>n()</code>, i.e. in the less specific subgroups. In our case we have one row equal to one observation, but sometimes in surveys you are given population weights, in which case you’d probably rather <code>sum()</code> these. Make sense?</p>
 <pre class="r"><code># A tabulate, then sum within bigger groups
 A &lt;- 
@@ -600,8 +600,8 @@ PH %&gt;%
   summarize(N = n())</code></pre>
 <pre><code>## `summarise()` regrouping output by 'Sex' (override with `.groups` argument)</code></pre>
 </div>
-<div id="colorspace-package-for-nice-color-palettes" class="section level3">
-<h3><span class="header-section-number">3.0.2</span> <code>colorspace</code> package for nice color palettes</h3>
+<div id="colorspace-package-for-nice-color-palettes" class="section level2">
+<h2><span class="header-section-number">3.2</span> <code>colorspace</code> package for nice color palettes</h2>
 <p>A new mini lesson on color palettes, which can be used well or poorly, but this particular tool happens to be structured in a way that promotes making good choices.</p>
 <ol style="list-style-type: decimal">
 <li><code>colorspace</code> has a nice selection of base palettes (which you can also customize)</li>
